@@ -1,9 +1,10 @@
 
-# Software Engineering for Data Scientists 
+# Software Engineering for Data Scientists
 
 This repository contains starter code for the **Software Engineering for Data Scientists** final project. Please reference your course materials for documentation on this repository's structure and important files. Happy coding!
 
-### Repository Structure
+## Repository Structure
+
 ```
 ├── README.md
 ├── assets
@@ -38,9 +39,10 @@ This repository contains starter code for the **Software Engineering for Data Sc
 ├── start
 ├── tests
     └── test_employee_events.py
+
 ```
 
-### employee_events.db
+## employee_events.db
 
 ```mermaid
 erDiagram
