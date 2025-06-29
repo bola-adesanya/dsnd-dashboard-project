@@ -1,4 +1,4 @@
-erDiagram
+# erDiagram
 
   employee {
     INTEGER index
@@ -32,4 +32,3 @@ erDiagram
     TEXT shift
     TEXT manager_name
   }
-
