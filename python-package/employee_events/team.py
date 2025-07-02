@@ -1,66 +1,65 @@
-# Import the QueryBase class
-# YOUR CODE HERE
+# python-package/employee_events/team.py
 
-# Import dependencies for sql execution
-#### YOUR CODE HERE
+from .query_base import QueryBase
+from .sql_execution import database_connection
 
-# Create a subclass of QueryBase
-# called  `Team`
-#### YOUR CODE HERE
+class Team(QueryBase):
+    name = "team"
 
-    # Set the class attribute `name`
-    # to the string "team"
-    #### YOUR CODE HERE
-
-
-    # Define a `names` method
-    # that receives no arguments
-    # This method should return
-    # a list of tuples from an sql execution
-    #### YOUR CODE HERE
-        
-        # Query 5
-        # Write an SQL query that selects
-        # the team_name and team_id columns
-        # from the team table for all teams
-        # in the database
-        #### YOUR CODE HERE
+    def names(self):
+        """
+        Returns a list of tuples with (team_name, team_id) for all teams.
+        """
+        df = self._get_names_as_df()
+        # Convert the DataFrame to a list of tuples.
+        return df.to_records(index=False).tolist()
     
+    def username(self, id):
+        """
+        Returns the name of a single team as a string.
+        """
+        df = self._get_username_as_df(id)
+        return df.iloc[0, 0] if not df.empty else ""
 
-    # Define a `username` method
-    # that receives an ID argument
-    # This method should return
-    # a list of tuples from an sql execution
-    #### YOUR CODE HERE
+    # --- Helper methods that use the decorator ---
 
-        # Query 6
-        # Write an SQL query
-        # that selects the team_name column
-        # Use f-string formatting and a WHERE filter
-        # to only return the team name related to
-        # the ID argument
-        #### YOUR CODE HERE
+    @database_connection
+    def _get_names_as_df(self):
+        """Query 5: Returns a DataFrame with team names and IDs."""
+        return """
+            SELECT
+                team_name,
+                team_id
+            FROM
+                team
+            ORDER BY
+                team_name;
+        """
 
-
-    # Below is method with an SQL query
-    # This SQL query generates the data needed for
-    # the machine learning model.
-    # Without editing the query, alter this method
-    # so when it is called, a pandas dataframe
-    # is returns containing the execution of
-    # the sql query
-    #### YOUR CODE HERE
-    def model_data(self, id):
-
+    @database_connection
+    def _get_username_as_df(self, id):
+        """Query 6: Returns a DataFrame with a single team's name."""
         return f"""
-            SELECT positive_events, negative_events FROM (
-                    SELECT employee_id
-                         , SUM(positive_events) positive_events
-                         , SUM(negative_events) negative_events
-                    FROM {self.name}
-                    JOIN employee_events
-                        USING({self.name}_id)
-                    WHERE {self.name}.{self.name}_id = {id}
-                    GROUP BY employee_id
-                   )
-                """
+            SELECT
+                team_name
+            FROM
+                team
+            WHERE
+                team_id = {id};
+        """
+    
+    @database_connection
+    def model_data(self, id):
+        # This method correctly returns a DataFrame.
+        return f"""
+                    SELECT positive_events, negative_events FROM (
+                            SELECT employee_id
+                                 , SUM(positive_events) positive_events
+                                 , SUM(negative_events) negative_events
+                            FROM {self.name}
+                            JOIN employee_events
+                                 USING({self.name}_id)
+                            WHERE {self.name}.{self.name}_id = {id}
+                            GROUP BY employee_id
+                           )
+               """

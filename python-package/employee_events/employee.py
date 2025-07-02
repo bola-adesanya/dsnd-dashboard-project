@@ -1,65 +1,63 @@
-# Import the QueryBase class
-#### YOUR CODE HERE
+# python-package/employee_events/employee.py
 
-# Import dependencies needed for sql execution
-# from the `sql_execution` module
-#### YOUR CODE HERE
+from .query_base import QueryBase
+from .sql_execution import database_connection
 
-# Define a subclass of QueryBase
-# called Employee
-#### YOUR CODE HERE
+class Employee(QueryBase):
+    name = "employee"
 
-    # Set the class attribute `name`
-    # to the string "employee"
-    #### YOUR CODE HERE
+    def names(self):
+        """
+        Returns a list of tuples with (full_name, employee_id) for all employees.
+        This is the required format for the Dropdown component.
+        """
+        df = self._get_names_as_df()
+        # Convert the DataFrame to a list of tuples.
+        return df.to_records(index=False).tolist()
 
+    def username(self, id):
+        """
+        Returns the full name of a single employee as a string.
+        """
+        df = self._get_username_as_df(id)
+        # The DataFrame will have one row, one column. Get that single value.
+        return df.iloc[0, 0] if not df.empty else ""
 
-    # Define a method called `names`
-    # that receives no arguments
-    # This method should return a list of tuples
-    # from an sql execution
-    #### YOUR CODE HERE
-        
-        # Query 3
-        # Write an SQL query
-        # that selects two columns 
-        # 1. The employee's full name
-        # 2. The employee's id
-        # This query should return the data
-        # for all employees in the database
-        #### YOUR CODE HERE
+    # --- Helper methods that use the decorator ---
+
+    @database_connection
+    def _get_names_as_df(self):
+        """Query 3: Returns a DataFrame with names and IDs."""
+        return """
+            SELECT
+                first_name || ' ' || last_name AS full_name,
+                employee_id
+            FROM
+                employee
+            ORDER BY
+                full_name;
+        """
     
+    @database_connection
+    def _get_username_as_df(self, id):
+        """Query 4: Returns a DataFrame with a single employee's name."""
+        return f"""
+            SELECT
+                first_name || ' ' || last_name AS full_name
+            FROM
+                employee
+            WHERE
+                employee_id = {id};
+        """
 
-    # Define a method called `username`
-    # that receives an `id` argument
-    # This method should return a list of tuples
-    # from an sql execution
-    #### YOUR CODE HERE
-        
-        # Query 4
-        # Write an SQL query
-        # that selects an employees full name
-        # Use f-string formatting and a WHERE filter
-        # to only return the full name of the employee
-        # with an id equal to the id argument
-        #### YOUR CODE HERE
-
-
-    # Below is method with an SQL query
-    # This SQL query generates the data needed for
-    # the machine learning model.
-    # Without editing the query, alter this method
-    # so when it is called, a pandas dataframe
-    # is returns containing the execution of
-    # the sql query
-    #### YOUR CODE HERE
+    @database_connection
     def model_data(self, id):
-
+        # This method correctly returns a DataFrame as required by the ML model.
         return f"""
                     SELECT SUM(positive_events) positive_events
                          , SUM(negative_events) negative_events
                     FROM {self.name}
                     JOIN employee_events
-                        USING({self.name}_id)
+                         USING({self.name}_id)
                     WHERE {self.name}.{self.name}_id = {id}
-                """
+               """

@@ -1,47 +1,53 @@
-from sqlite3 import connect
-from pathlib import Path
-from functools import wraps
+# python-package/employee_events/sql_execution.py
+
+import sqlite3
 import pandas as pd
+from functools import wraps
+from pathlib import Path
 
-# Using pathlib, create a `db_path` variable
-# that points to the absolute path for the `employee_events.db` file
-db_path = Path(__file__).parent / 'employee_events.db'  
+# This creates a platform-independent path to the database file.
+# Path(__file__) gets the path of the current file (sql_execution.py).
+# .parent gets the directory this file is in (employee_events/).
+# We then append the database file name to this path.
+DB_PATH = Path(__file__).parent / 'employee_events.db'
 
-# OPTION 1: MIXIN
-# Define a class called `QueryMixin`
-class QueryMixin:
-    
-    # Define a method named `pandas_query`
-    # that receives an sql query as a string
-    # and returns the query's result
-    # as a pandas dataframe
-    pandas_query = query(lambda sql_query: sql_query)   
-
-
-    # Define a method named `query`
-    # that receives an sql_query as a string
-    # and returns the query's result as
-    # a list of tuples. (You will need
-    # to use an sqlite3 cursor)
-    query = query(lambda sql_query: sql_query)
-    
-    
-
- 
- # Leave this code unchanged
-def query(func):
+def database_connection(func):
     """
-    Decorator that runs a standard sql execution
-    and returns a list of tuples
+    Decorator to handle the database connection lifecycle:
+    1. Opens a connection to the SQLite database.
+    2. Executes the SQL query returned by the decorated function.
+    3. Closes the database connection.
+    4. Returns the fetched data as a pandas DataFrame.
     """
-
     @wraps(func)
-    def run_query(*args, **kwargs):
-        query_string = func(*args, **kwargs)
-        connection = connect(db_path)
-        cursor = connection.cursor()
-        result = cursor.execute(query_string).fetchall()
-        connection.close()
-        return result
-    
-    return run_query
+    def wrapper(*args, **kwargs):
+        # First, call the original function (the one being decorated).
+        # It will return the SQL query string we need to execute.
+        query = func(*args, **kwargs)
+        
+        connection = None
+        try:
+            # Step 1: Open a connection to the database.
+            connection = sqlite3.connect(DB_PATH)
+            
+            # Step 2 & 4: Execute the query using pandas and return the data.
+            # pandas' read_sql_query function is a convenient way to run a query
+            # and load the results directly into a DataFrame.
+            df = pd.read_sql_query(query, connection)
+            return df
+
+        except sqlite3.Error as e:
+            # Handle potential database errors, like a missing table.
+            print(f"Database error: {e}")
+            # Return an empty DataFrame if an error occurs.
+            return pd.DataFrame()
+            
+        finally:
+            # Step 3: Close the connection.
+            # The 'finally' block ensures that this code runs whether
+            # the 'try' block succeeded or an error occurred.
+            if connection:
+                connection.close()
+                
+    return wrapper
+
