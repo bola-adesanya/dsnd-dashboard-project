@@ -27,7 +27,7 @@ The application is built with a Python backend, featuring a locally developed da
 
 ## Project Structure
 
-```
+```text
 ├── .github/workflows/      # CI/CD workflows for testing and linting
 ├── python-package/         # Source for the installable employee_events data package
 │   └── employee_events/
@@ -44,10 +44,9 @@ The application is built with a Python backend, featuring a locally developed da
 To set up and run this project locally, please follow these steps:
 
 1.  **Clone the Repository**
-    ```bash
-    git clone <your-repository-url>
-    cd <repository-name>
-    ```
+```bash
+    git clone https://github.com/bola-adesanya/dsnd-dashboard-project
+```
 
 2.  **Create and Activate a Virtual Environment**
     ```bash
